@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>复盘：运动学物体被当作动态物体求解</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page: #f9f9f7;
+    --surface: #fcfcfb;
+    --ink: #0b0b0b;
+    --ink-2: #52514e;
+    --muted: #898781;
+    --grid: #e1e0d9;
+    --baseline: #c3c2b7;
+    --border: rgba(11,11,11,0.10);
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --critical: #d03b3b;
+    --good: #0ca30c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --page: #0d0d0d;
+      --surface: #1a1a19;
+      --ink: #f0efec;
+      --ink-2: #c3c2b7;
+      --muted: #898781;
+      --grid: #2c2c2a;
+      --baseline: #383835;
+      --border: rgba(255,255,255,0.10);
+      --series-1: #3987e5;
+      --series-2: #d95926;
+      --critical: #d03b3b;
+      --good: #0ca30c;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --ink: #f0efec;
+    --ink-2: #c3c2b7;
+    --muted: #898781;
+    --grid: #2c2c2a;
+    --baseline: #383835;
+    --border: rgba(255,255,255,0.10);
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --critical: #d03b3b;
+    --good: #0ca30c;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 40px 24px 96px; }
+  header.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 8px; }
+  h1 { font-size: 26px; line-height: 1.3; margin: 0 0 4px; letter-spacing: -0.01em; }
+  .sub { color: var(--ink-2); font-size: 14px; margin: 0; }
+  .meta { color: var(--muted); font-size: 12.5px; margin: 10px 0 0; font-variant-numeric: tabular-nums; }
+  .toggle {
+    flex: none; border: 1px solid var(--border); background: var(--surface); color: var(--ink-2);
+    border-radius: 8px; padding: 6px 10px; font: inherit; font-size: 13px; cursor: pointer;
+  }
+  nav.toc { margin: 26px 0 0; padding: 14px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+  nav.toc ol { margin: 0; padding-left: 20px; columns: 2; column-gap: 28px; }
+  nav.toc a { color: var(--ink-2); text-decoration: none; }
+  nav.toc a:hover { color: var(--ink); text-decoration: underline; }
+  section { margin-top: 46px; }
+  h2 { font-size: 19px; margin: 0 0 6px; letter-spacing: -0.005em; }
+  h2 .num { color: var(--muted); font-weight: 500; margin-right: 8px; font-variant-numeric: tabular-nums; }
+  h3 { font-size: 15.5px; margin: 26px 0 6px; color: var(--ink); }
+  p { margin: 10px 0; color: var(--ink-2); }
+  p strong, li strong { color: var(--ink); font-weight: 600; }
+  .lede { font-size: 16px; color: var(--ink); }
+  .verdict {
+    margin-top: 18px; padding: 18px 20px; background: var(--surface);
+    border: 1px solid var(--border); border-left: 3px solid var(--series-1); border-radius: 10px;
+  }
+  .verdict p { margin: 6px 0; }
+  .verdict .q { color: var(--muted); font-size: 13px; text-transform: none; letter-spacing: .02em; }
+  ul { color: var(--ink-2); padding-left: 22px; }
+  li { margin: 6px 0; }
+  code, .mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.88em; }
+  code { background: color-mix(in srgb, var(--ink) 6%, transparent); padding: 1px 5px; border-radius: 4px; color: var(--ink); }
+  pre {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; overflow-x: auto; margin: 14px 0; line-height: 1.5;
+  }
+  pre code { background: none; padding: 0; }
+  .fig { margin: 22px 0 10px; padding: 18px 18px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; }
+  .fig figcaption { margin: 10px 2px 0; }
+  .fig .title { font-size: 14.5px; font-weight: 600; color: var(--ink); margin: 0 0 2px; }
+  .fig .desc { font-size: 13px; color: var(--muted); margin: 0; }
+  .fig svg { display: block; width: 100%; height: auto; }
+  .notes { margin: 10px 2px 0; padding-left: 0; list-style: none; font-size: 13px; color: var(--ink-2); }
+  .notes li { margin: 8px 0; padding-left: 26px; position: relative; }
+  .notes .badge { position: absolute; left: 0; top: 0; width: 18px; height: 18px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; background: var(--critical); font-variant-numeric: tabular-nums; }
+  .notes .badge.b2 { background: var(--series-1); }
+  details.data { margin-top: 10px; }
+  details.data summary { cursor: pointer; font-size: 12.5px; color: var(--muted); }
+  details.data summary:hover { color: var(--ink-2); }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--ink-2); font-weight: 600; font-size: 12.5px; }
+  td { color: var(--ink); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .tag { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--border); color: var(--ink-2); }
+  .tag .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+  .dot.ok { background: var(--good); }
+  .dot.bad { background: var(--critical); }
+  .stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 20px 0; }
+  .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  .stat .label { font-size: 12.5px; color: var(--muted); margin: 0 0 6px; }
+  .stat .value { font-size: 27px; font-weight: 600; color: var(--ink); line-height: 1.15; letter-spacing: -0.01em; }
+  .stat .value small { font-size: 14px; font-weight: 500; color: var(--ink-2); }
+  .stat .foot { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .callout { border-left: 3px solid var(--critical); background: var(--surface); border: 1px solid var(--border); border-left-width: 3px; border-radius: 10px; padding: 14px 16px; margin: 16px 0; }
+  .callout p { margin: 4px 0; }
+  .callout .h { font-weight: 600; color: var(--ink); font-size: 13.5px; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 14px 8px; }
+  .panel .pt { font-size: 13.5px; font-weight: 600; margin: 0 0 2px; color: var(--ink); }
+  .panel .pd { font-size: 12.5px; color: var(--muted); margin: 0 0 4px; }
+  .axis-note { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .tooltip {
+    position: fixed; pointer-events: none; z-index: 50; max-width: 260px;
+    background: var(--surface); color: var(--ink); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 10px; font-size: 12.5px; line-height: 1.45;
+    box-shadow: 0 6px 24px rgba(0,0,0,.18); opacity: 0; transform: translate(-50%, -120%);
+    transition: opacity .08s ease;
+  }
+  .tooltip .v { font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tooltip .l { color: var(--muted); }
+  .kicker { color: var(--muted); font-size: 12.5px; letter-spacing: .04em; }
+  @media (max-width: 720px) {
+    .stat-row { grid-template-columns: 1fr; }
+    .grid2 { grid-template-columns: 1fr; }
+    nav.toc ol { columns: 1; }
+    h1 { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div>
+    <p class="kicker">INCIDENT RETROSPECTIVE · mini-phys-lab</p>
+    <h1>运动学物体被当作动态物体求解，整场景被推歪</h1>
+    <p class="sub">不是「加个判断」的事。先回答为什么当时没发现，再给出一条让错误在编译期不可能发生的设计约束。</p>
+    <p class="meta">基线 <span class="mono">2c0cca1</span> · 复盘日期 2026-11-26 · 证据全部由仓库内可复现命令测得</p>
+  </div>
+  <button class="toggle" id="themeToggle" type="button" aria-label="切换明暗主题">主题：跟随系统</button>
+</header>
+
+<nav class="toc" aria-label="目录">
+  <ol>
+    <li><a href="#q1">为什么当时没发现（数据回答）</a></li>
+    <li><a href="#back">反解：需要多大测试覆盖</a></li>
+    <li><a href="#q2">设计约束：类型成为必填参数</a></li>
+    <li><a href="#trade">取舍：改动行数 vs 复发风险</a></li>
+    <li><a href="#samples">两类调用点各改一处样例</a></li>
+    <li><a href="#verify">验证：编译必须失败得恰到好处</a></li>
+    <li><a href="#limits">仍然存在的盲区</a></li>
+  </ol>
+</nav>
+
+<div class="verdict">
+  <p class="q">结论先行</p>
+  <p><strong>①没发现，不是因为覆盖率不足——覆盖率已经满了。</strong>事故前三个模块行覆盖 <strong>100%</strong>、调用执行 <strong>100%</strong>，28 个断言却<strong>没有一个</strong>提及物体类型；仓库里根本不存在 <code>kinematic / dynamic / kind</code> 这个词。</p>
+  <p><strong>②反解证明覆盖不是这道题的护栏。</strong>把「已声明类型的调用点 k」设为 0，要兜住哪怕一次标错，反解得需要 <strong>100%</strong> 覆盖；而 100% 已经达成、事故照样发生。能把这个所需覆盖压到 0 的唯一办法，是让每个调用点都必须声明类型——也就是把类型变成编译期强制。</p>
+  <p><strong>③据此选「必填结构体参数」而非默认值。</strong>默认值方案 7 行改动、零调用点迁移，实测却能在 <code>-Werror</code> 下静默复现同一事故（物体被从 y=0.25 推到 0.500）；必填方案 36 行一次性迁移，漏标与字面量两种伪造都被编译器拒绝，且正确写法零告警。</p>
+</div>
+
+<div class="stat-row" role="list">
+  <div class="stat" role="listitem">
+    <p class="label">运动求解调用点</p>
+    <p class="value">11 <small>个</small></p>
+    <p class="foot">6 处 <code>resolve</code> + 5 处 <code>step</code>，全部不区分类型</p>
+  </div>
+  <div class="stat" role="listitem">
+    <p class="label">断言 / 提及类型的断言</p>
+    <p class="value">28 <small>/ 0</small></p>
+    <p class="foot">三种模块合计，无一条验证运动学语义</p>
+  </div>
+  <div class="stat" role="listitem">
+    <p class="label">事故前行覆盖</p>
+    <p class="value">100<small>%</small></p>
+    <p class="foot">全绿、全执行——仍然漏了</p>
+  </div>
+</div>
+
+<section id="q1">
+  <h2><span class="num">01</span>为什么当时没发现</h2>
+  <p class="lede">先把「类型标错」的调用点统计出来，再用这个占比反解需要的覆盖率。统计之后结论比预想的更硬：这里的问题不是「标错」，而是<strong>根本没有地方可以标</strong>。</p>
+
+  <h3>历史数据</h3>
+  <table>
+    <thead><tr><th>量</th><th class="num">值</th><th>含义</th></tr></thead>
+    <tbody>
+      <tr><td>「类型标错」调用点</td><td class="num">0</td><td>类型概念从未存在，不存在「标错」</td></tr>
+      <tr><td>运动边界总调用点</td><td class="num">11</td><td>6 <code>resolve</code> + 5 <code>step</code></td></tr>
+      <tr><td>标错占比</td><td class="num">0 / 11 = 0%</td><td>不是子集问题——是整个面都不可见</td></tr>
+      <tr><td>断言总数</td><td class="num">28</td><td>solve 10 + integrate 6 + collide 12</td></tr>
+      <tr><td>提及 body kind 的断言</td><td class="num">0</td><td>0 / 28</td></tr>
+      <tr><td>行覆盖 / 调用执行</td><td class="num">100% / 100%</td><td>三模块事故前全绿</td></tr>
+      <tr><td>分支至少执行一次</td><td class="num">56.8%–77.3%</td><td>逐模块；唯一未覆盖分支是我的 <code>switch</code> 兜底</td></tr>
+    </tbody>
+  </table>
+
+  <figure class="fig" id="figA">
+    <figcaption>
+      <p class="title">覆盖率与语义覆盖：100% 全绿，0% 切题</p>
+      <p class="desc">事故前实测。前三项是「跑了多少代码」，第四项是「断言里有没有提到那件出事的语义」。</p>
+    </figcaption>
+    <svg viewBox="0 0 720 250" role="img" aria-label="覆盖率条形图：行覆盖与调用覆盖均为 100%，分支覆盖 56.8%，提及类型的断言为 0 / 28。">
+      <g id="figA-bars"></g>
+    </svg>
+    <ul class="notes">
+      <li><span class="badge" style="background:var(--critical)">!</span><strong>28 个断言里，0 个提及 body kind。</strong>它们测的是「反弹对不对」「落不落在地面」，没有一条测「这具物体是否允许被推」。覆盖的是行，不是语义。</li>
+      <li><strong>分支 56.8%–77.3% 的真实缺口</strong>只是我新加 <code>switch</code> 的兜底 <code>return</code>（不可达）；事故前没有任何与类型相关的分支可覆盖——这才是重点。</li>
+    </ul>
+    <details class="data"><summary>数据表</summary>
+      <table>
+        <thead><tr><th>指标</th><th class="num">事故前</th></tr></thead>
+        <tbody>
+          <tr><td>行覆盖</td><td class="num">100%</td></tr>
+          <tr><td>调用执行</td><td class="num">100%</td></tr>
+          <tr><td>分支至少执行一次（最低，collide）</td><td class="num">56.8%</td></tr>
+          <tr><td>提及类型的断言 / 总数</td><td class="num">0 / 28</td></tr>
+        </tbody>
+      </table>
+    </details>
+  </figure>
+
+  <section id="back">
+    <h2><span class="num">02</span>反解：需要多大比例的测试覆盖</h2>
+    <p>设 11 个运动调用点里已有 <em>k</em> 个声明了类型。要让「至少 1 个标错调用点被测试拦下」成为<b>必然</b>，须覆盖全部 11−<em>k</em> 个未标注点，即所需覆盖率 <span class="mono">f = 1 − k/N</span>；若要 80% 把握，则 <span class="mono">f = 1 − 0.2^(1/(N−k))</span>。</p>
+    <p><strong>把现实的 k=0 代进去，得到 100%</strong>——而 100% 正是事故前的实测值。也就是说，「加测试、提覆盖」这条路径反解出的目标<strong>已经达成</strong>，事故仍然发生。这页数据本身否证了覆盖率是护栏：缺陷不在某条没跑到的分支里，而在<strong>接口里没有这个概念</strong>。</p>
+
+    <figure class="fig" id="figB">
+      <figcaption>
+        <p class="title">所需覆盖率如何随「已声明类型的调用点」下降</p>
+        <p class="desc">横轴 k = 11 个调用点里实际声明了类型的数量；纵轴 = 兜住一次标错所需的测试覆盖率。两条曲线：确定性保证，与 80% 把握。</p>
+      </figcaption>
+      <svg viewBox="0 0 720 380" role="img" aria-label="折线图：所需覆盖率从 k=0 时的 100% 下降到 k=11 时的 0%。">
+        <g id="figB-grid"></g>
+        <g id="figB-axes"></g>
+        <g id="figB-series"></g>
+        <g id="figB-annot"></g>
+      </svg>
+      <ul class="notes">
+        <li><span class="badge">1</span><strong>k=0（现实，图中左端红圈）：</strong>反解得「需 100% 覆盖」；实测行覆盖/调用覆盖已是 100%，事故仍发生。覆盖率不是这道题的护栏。</li>
+        <li><span class="badge b2">2</span><strong>k=11（必填参数，图中右端蓝圈）：</strong>每个调用点都必须声明类型，所需覆盖率降到 0——不是「测得更多」，而是「编译器替我们保证」。这正是下一节的设计约束。</li>
+      </ul>
+      <details class="data"><summary>数据表</summary>
+        <table>
+          <thead><tr><th class="num">k</th><th class="num">确定性所需覆盖</th><th class="num">80% 把握所需覆盖</th></tr></thead>
+          <tbody id="figB-table"></tbody>
+        </table>
+      </details>
+    </figure>
+    <p class="axis-note">模型说明：<span class="mono">1−k/N</span> 假定各已标注点被独立抽样。它只在「各点已声明类型」的前提下成立——而事故前 k=0，前提本身不成立，所以 100% 也兜不住。这个模型的自我否证，恰好是结论：唯一能把所需覆盖降到 0 的，是必填。</p>
+  </section>
+</section>
+
+<section id="q2">
+  <h2><span class="num">03</span>设计约束：把类型做成接口的必填参数</h2>
+  <p class="lede">目标不是「记得传类型」，而是<strong>不传就编译不过</strong>；进一步，<strong>传字面量 0/1 也不行</strong>，只能用具名常量。缺了编译不过，错误就在编译期暴露。</p>
+
+  <h3>三个要点</h3>
+  <ul>
+    <li><strong>必填、无默认。</strong><code>step(BodyType t, Body* b, …)</code>。参数在第一位，调用点无法省略。</li>
+    <li><strong>结构体包装，而非裸 enum。</strong><code>typedef struct { BodyKind kind; } BodyType;</code>。标量字面量 <code>0</code>/<code>1</code> 不能隐式转换成结构体——裸枚举在 gcc 与 clang 最大告警下都会静默接受字面量（见取舍一节实测）。</li>
+    <li><strong>策略 <code>switch</code> 穷举 + <code>-Wswitch-enum</code>。</strong>以后新增 body kind 而不给策略，编译直接报错，逼你当场决定运动学怎么处理。</li>
+  </ul>
+
+  <p>核心实现（<code>integrate/src/integrate.c</code>）：</p>
+  <pre><code>static int is_simulated(BodyType t) {
+    switch (t.kind) {
+    <b>case BK_DYNAMIC:</b>   return 1;   /* treat as a real body */
+    <b>case BK_KINEMATIC:</b> return 0;   /* path is authoritative */
+    }
+    return 0;   /* unreachable; keeps -Wreturn-type quiet */
+}
+
+int step(BodyType t, Body* b, float dt, …) {
+    if (dt &lt; 0.0f || radius &lt;= 0.0f) return -1;
+    if (!is_simulated(t)) return 0;    /* kinematic: don't touch */
+    …</code></pre>
+  <p>这次事故的根因——<strong>位置修正会「推」一个本该沿既定路径走的物体</strong>——被一行 <code>if (!is_simulated(t)) return 0;</code> 关掉；<code>resolve</code> 同理，运动学物体质量无穷大，速度不被改写。</p>
+</section>
+
+<section id="trade">
+  <h2><span class="num">04</span>取舍：改动行数 vs 复发风险，定方案</h2>
+  <p>三个候选实测对齐（同一改造范围、两模块、只算签名+策略+调用点，不计新增回归断言）：</p>
+
+  <div class="grid2">
+    <figure class="panel" id="figC">
+      <figcaption>
+        <p class="pt">成本：改动行数</p>
+        <p class="pd">实测，越低越好</p>
+      </figcaption>
+      <svg viewBox="0 0 340 240" role="img" aria-label="改动行数：默认值 7 行，裸枚举 30 行，必填结构体 36 行。">
+        <g id="figC-bars"></g>
+      </svg>
+      <details class="data"><summary>数据表</summary>
+        <table><thead><tr><th>方案</th><th class="num">改动行</th></tr></thead>
+        <tbody>
+          <tr><td>默认值字段</td><td class="num">7</td></tr>
+          <tr><td>裸枚举必填</td><td class="num">30</td></tr>
+          <tr><td>结构体必填</td><td class="num">36</td></tr>
+        </tbody></table>
+      </details>
+    </figure>
+
+    <figure class="panel" id="figD">
+      <figcaption>
+        <p class="pt">复发风险：能静默编译通过的错误形态</p>
+        <p class="pd">实测，gcc + clang <code>-Werror</code>；越低越好</p>
+      </figcaption>
+      <svg viewBox="0 0 340 240" role="img" aria-label="静默编译通过的错误形态：默认值 3 个且随物体增长，裸枚举 22 个，结构体 0 个。">
+        <g id="figD-bars"></g>
+      </svg>
+      <details class="data"><summary>数据表</summary>
+        <table><thead><tr><th>方案</th><th class="num">静默形态</th></tr></thead>
+        <tbody>
+          <tr><td>默认值字段</td><td class="num">3（随每个新物体增长；实测仍复现事故）</td></tr>
+          <tr><td>裸枚举必填</td><td class="num">22（11 调用点 × 字面量 0/1）</td></tr>
+          <tr><td>结构体必填</td><td class="num">0</td></tr>
+        </tbody></table>
+      </details>
+    </figure>
+  </div>
+  <p class="axis-note">两张图用同一组横轴分类、各自独立纵轴——刻意不做双纵轴，因为改动量与复发风险量纲不同，叠在一张图上会凭空造出相关性。</p>
+
+  <div class="callout">
+    <p class="h">为什么默认值方案被否掉：它实测复现了这次事故。</p>
+    <p>把 kind 做进 <code>Body</code> 字段、零初始化默认成动态：<strong>7 行改动、0 调用点迁移、仍然 <code>all_ok=1</code></strong>。但把一具本该运动学的物体交给它，编译器在 <code>-Werror</code>（含 clang <code>-Weverything</code>）下<strong>零告警</strong>，物体被从 <code>y=0.25</code> 推到 <code>0.500</code>、<code>vy</code> 清零——与事故一模一样。「方便」的代价就是「会再犯」，实测坐实。</p>
+  </div>
+
+  <h3>定方案</h3>
+  <p><strong>选「结构体必填」。</strong>两条曲线在「默认值→其余」之间有一道断崖：多花 29 行，把静默形态从「处处可犯」压到 0；而在裸枚举→结构体的最后 6 行，买到的是「字面量 0/1 也无法伪造」——这笔边际账很划算。默认值省下的 29 行，等于把这次事故原样存进代码库里，等下一次场景拼装时再触发。</p>
+  <p>若团队时间被极端挤压，<strong>裸枚举必填可作为中间态</strong>：它已能拦下最常见的「漏标」，但字面量仍可伪造。底线只有一条——<strong>不能有默认值</strong>。</p>
+</section>
+
+<section id="samples">
+  <h2><span class="num">05</span>两类调用点各改一处样例</h2>
+  <p>两类边界：<b>冲量响应</b>（<code>solve/resolve</code>）与<b>运动积分</b>（<code>integrate/step</code>）。各取一处，展示改动前后。</p>
+
+  <h3>样例 A — 冲量响应类（<code>solve</code>）</h3>
+  <pre><code>/* 前 */
+resolve(&amp;v, n, &amp;m, &amp;loss);
+
+/* 后：动态物体，允许被冲量改写 */
+resolve(BODY_DYNAMIC, &amp;v, n, &amp;m, &amp;loss);
+
+/* 后：运动学物体，速度必须原样返回 */
+resolve(BODY_KINEMATIC, &amp;kine, n, &amp;m, &amp;kine_loss);</code></pre>
+
+  <h3>样例 B — 运动积分类（<code>integrate</code>）</h3>
+  <pre><code>/* 前 */
+step(&amp;b, 0.1f, 0, -9.8f, 0.0f, 0.5f);
+
+/* 后：动态物体照常积分并做地面修正 */
+step(BODY_DYNAMIC, &amp;b, 0.1f, 0, -9.8f, 0.0f, 0.5f);
+
+/* 后：运动学物体——不积分重力、不做位置修正 */
+step(BODY_KINEMATIC, &amp;k, 0.1f, 0, -9.8f, 0.0f, 0.5f);</code></pre>
+  <p>这两个调用点连同其余 9 处全部迁移。之所以能一次性、机械地迁完，是因为<strong>编写者不必逐个回忆哪具物体是什么</strong>——编译器会把每一处缺参的地方列出来（见下节）。</p>
+</section>
+
+<section id="verify">
+  <h2><span class="num">06</span>验证：编译必须失败得恰到好处</h2>
+  <p>「恰到好处」有两半：<b>漏标的要报错，标对的零告警</b>。仓库内新增 <code>make -C solve contract</code>，对 8 个形态逐一单独编译，判定只看「编译器是否报错」。若某个应被拒绝的形态竟然编译通过，该测试自己就失败。</p>
+
+  <table>
+    <thead><tr><th>形态</th><th>编译结果（期望）</th><th>实测（gcc &amp; clang）</th></tr></thead>
+    <tbody>
+      <tr><td><code>step(b, dt, …)</code> 漏类型</td><td>必须报错</td><td><span class="tag"><span class="dot bad"></span>拒绝</span></td></tr>
+      <tr><td><code>resolve(v, n, m, …)</code> 漏类型</td><td>必须报错</td><td><span class="tag"><span class="dot bad"></span>拒绝</span></td></tr>
+      <tr><td><code>step(0, b, …)</code> 字面量 0</td><td>必须报错</td><td><span class="tag"><span class="dot bad"></span>拒绝</span></td></tr>
+      <tr><td><code>resolve(1, v, …)</code> 字面量 1</td><td>必须报错</td><td><span class="tag"><span class="dot bad"></span>拒绝</span></td></tr>
+      <tr><td><code>resolve(BODY_DYNAMIC, …)</code></td><td>零告警</td><td><span class="tag"><span class="dot ok"></span>通过</span></td></tr>
+      <tr><td><code>resolve(BODY_KINEMATIC, …)</code></td><td>零告警</td><td><span class="tag"><span class="dot ok"></span>通过</span></td></tr>
+      <tr><td><code>step(BODY_KINEMATIC, …)</code></td><td>零告警</td><td><span class="tag"><span class="dot ok"></span>通过</span></td></tr>
+      <tr><td>同一 TU 同时 include 两个模块头</td><td>零告警</td><td><span class="tag"><span class="dot ok"></span>通过</span></td></tr>
+    </tbody>
+  </table>
+
+  <p>漏标的典型报错（GCC）：</p>
+  <pre><code>error: incompatible type for argument 1 of 'step'
+error: too few arguments to function 'step'</code></pre>
+  <p>编译契约测试自证：<strong>8 / 8 通过</strong>（<code>cc</code> 与 <code>clang</code> 各一遍）。三个模块在 <code>-Wall -Wextra -Werror -Wswitch-enum -pedantic</code> 下全部 <code>all_ok=1</code>。</p>
+
+  <h3>新增的行为回归</h3>
+  <ul>
+    <li><code>integrate</code>：<code>kinematic_not_corrected</code>、<code>kinematic_path_unchanged</code>——运动学物体被压进地面时坐标逐位不变。</li>
+    <li><code>solve</code>：<code>kinematic_untouched</code>、<code>kinematic_velocity_unchanged</code>、<code>kinematic_no_impulse_loss</code>——速度逐位不变、冲量损失为 0。</li>
+  </ul>
+  <p class="axis-note">题面要求「各改一处样例」；实际把所有 11 处都迁了，是因为编译器逐处点名、迁完才可能全绿——这正是必填方案把迁移成本变成一次性机械劳动的地方。</p>
+</section>
+
+<section id="limits">
+  <h2><span class="num">07</span>仍然存在的盲区（说清楚，不粉饰）</h2>
+  <ul>
+    <li><strong>编译器拦「没标」，拦不住「标反」。</strong>有人显式写 <code>BODY_DYNAMIC</code> 而心里想的是运动学，照样编译通过。这类语义错标只能靠行为断言（上面 5 条回归）兜底，且只在覆盖到该调用点时有效。设计约束缩小了错误面，没有消灭它。</li>
+    <li><strong>类型块在 solve.h / integrate.h 各有一份</strong>（用同一个 <code>BODY_TYPE_H</code> 守卫保证同 TU 不冲突）。两份必须字面一致，是维护隐患；长期正解是抽一个共享 <code>phys_types.h</code>，但那会把两个独立可构建的模块耦合起来——留作后续决策。</li>
+    <li><strong>「运动学物体质量无穷大」是建模选择</strong>，不是物理真理。若某场景需要一个「会动但不受冲量影响」的混合体，需要新增 kind，届时 <code>switch</code> 穷举会强制你决定策略。</li>
+  </ul>
+</section>
+
+<section id="appendix">
+  <h2><span class="num">08</span>附录：复现命令</h2>
+  <pre><code># 行为测试（三模块，最严告警）
+for d in collide solve integrate; do
+  make -C $d clean &amp;&amp; \
+  make -C $d CFLAGS="-O2 -std=c11 -Wall -Wextra -Werror -Wswitch-enum -pedantic" test
+done
+
+# 编译契约（漏标必错、标对零告警）
+make -C solve contract
+
+# 覆盖率（事故前基线见正文数据表）
+cd integrate/src &amp;&amp; gcc -O0 --coverage -std=c11 integrate.c -o ig -lm &amp;&amp; \
+  ./ig &gt;/dev/null &amp;&amp; gcov -b ig-integrate.gcda</code></pre>
+  <p class="axis-note">本报告所有数字均来自上述命令在基线 <span class="mono">2c0cca1</span> 上的实测；改动后的文件名与行号以工作区为准。</p>
+</section>
+
+</div>
+<div class="tooltip" id="tip" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- theme toggle (system / light / dark) ----------
+  var btn = document.getElementById("themeToggle");
+  var modes = ["system", "light", "dark"], mi = 0;
+  btn && btn.addEventListener("click", function () {
+    mi = (mi + 1) % 3;
+    var m = modes[mi];
+    if (m === "system") { document.documentElement.removeAttribute("data-theme"); }
+    else { document.documentElement.setAttribute("data-theme", m); }
+    btn.textContent = "主题：" + (m === "system" ? "跟随系统" : m === "light" ? "浅色" : "深色");
+  });
+
+  // ---------- tooltip ----------
+  var tip = document.getElementById("tip");
+  function showTip(evt, value, label) {
+    tip.replaceChildren();
+    var v = document.createElement("div"); v.className = "v"; v.textContent = value;
+    var l = document.createElement("div"); l.className = "l"; l.textContent = label;
+    tip.appendChild(v); tip.appendChild(l);
+    tip.style.opacity = "1";
+    var x = evt.clientX, y = evt.clientY;
+    if (evt.type === "focus") { var r = evt.target.getBoundingClientRect(); x = r.left + r.width/2; y = r.top; }
+    tip.style.left = x + "px"; tip.style.top = y + "px";
+  }
+  function hideTip() { tip.style.opacity = "0"; }
+  function wire(el, value, label) {
+    el.addEventListener("pointerenter", function (e) { showTip(e, value, label); });
+    el.addEventListener("pointermove", function (e) { showTip(e, value, label); });
+    el.addEventListener("pointerleave", hideTip);
+    el.addEventListener("focus", function (e) { showTip(e, value, label); });
+    el.addEventListener("blur", hideTip);
+    el.setAttribute("tabindex", "0");
+    el.setAttribute("role", "img");
+    el.setAttribute("aria-label", label + "：" + value);
+  }
+  var NS = "http://www.w3.org/2000/svg";
+  function mk(name, attrs) { var e = document.createElementNS(NS, name); for (var k in attrs) e.setAttribute(k, attrs[k]); return e; }
+
+  // ---------- Chart A: coverage bars ----------
+  (function () {
+    var g = document.getElementById("figA-bars");
+    var x0 = 160, x1 = 650, w = x1 - x0;
+    var rows = [
+      { label: "行覆盖", value: 100, text: "100%" },
+      { label: "调用覆盖", value: 100, text: "100%" },
+      { label: "分支覆盖", value: 56.8, text: "56.8%" },
+      { label: "类型断言", value: 0, text: "0 / 28", zero: true }
+    ];
+    // gridlines
+    [0, 25, 50, 75, 100].forEach(function (t) {
+      var x = x0 + (t / 100) * w;
+      g.appendChild(mk("line", { x1: x, y1: 40, x2: x, y2: 205, "class": "gl", stroke: "var(--grid)", "stroke-width": 1 }));
+      var tx = mk("text", { x: x, y: 223, "text-anchor": "middle", "font-size": 11, fill: "var(--muted)", "font-variant-numeric": "tabular-nums" });
+      tx.textContent = t + "%"; g.appendChild(tx);
+    });
+    rows.forEach(function (r, i) {
+      var cy = 60 + i * 40;
+      var y = cy - 9;
+      // row guide for the zero row only
+      if (r.zero) g.appendChild(mk("line", { x1: x0, y1: cy, x2: x1, y2: cy, stroke: "var(--baseline)", "stroke-width": 1 }));
+      var lab = mk("text", { x: x0 - 12, y: cy + 5, "text-anchor": "end", "font-size": 13, fill: "var(--ink-2)" });
+      lab.textContent = r.label; g.appendChild(lab);
+      if (r.zero) {
+        var ring = mk("circle", { cx: x0, cy: cy, r: 5, fill: "none", stroke: "var(--critical)", "stroke-width": 2 });
+        g.appendChild(ring);
+        var zl = mk("text", { x: x0 + 12, y: cy + 5, "font-size": 13, "font-weight": 600, fill: "var(--critical)" });
+        zl.textContent = r.text; g.appendChild(zl);
+        wire(ring, r.text, r.label + "（提及 body kind）");
+      } else {
+        var barW = Math.max(2, (r.value / 100) * w);
+        var rect = mk("rect", { x: x0, y: y, width: barW, height: 18, rx: 4, ry: 4, fill: "var(--series-1)" });
+        // square the baseline end
+        var cap = mk("rect", { x: x0, y: y, width: Math.min(4, barW), height: 18, fill: "var(--series-1)" });
+        g.appendChild(rect); g.appendChild(cap);
+        var vl = mk("text", { x: x0 + barW + 8, y: cy + 5, "font-size": 13, "font-weight": 600, fill: "var(--ink)", "font-variant-numeric": "tabular-nums" });
+        vl.textContent = r.text; g.appendChild(vl);
+        wire(rect, r.text, r.label);
+      }
+    });
+  })();
+
+  // ---------- Chart B: back-solve curves ----------
+  (function () {
+    var N = 11, x0 = 70, x1 = 670, w = x1 - x0, y0 = 300, y1 = 40, h = y0 - y1;
+    function X(k) { return x0 + (k / N) * w; }
+    function Y(f) { return y0 - (f / 100) * h; }
+    var grid = document.getElementById("figB-grid"), axes = document.getElementById("figB-axes");
+    [0, 25, 50, 75, 100].forEach(function (t) {
+      var y = Y(t);
+      grid.appendChild(mk("line", { x1: x0, y1: y, x2: x1, y2: y, stroke: "var(--grid)", "stroke-width": 1 }));
+      var tx = mk("text", { x: x0 - 10, y: y + 4, "text-anchor": "end", "font-size": 11, fill: "var(--muted)", "font-variant-numeric": "tabular-nums" });
+      tx.textContent = t + "%"; axes.appendChild(tx);
+    });
+    axes.appendChild(mk("line", { x1: x0, y1: y0, x2: x1, y2: y0, stroke: "var(--baseline)", "stroke-width": 1 }));
+    axes.appendChild(mk("line", { x1: x0, y1: y0, x2: x0, y2: y1, stroke: "var(--baseline)", "stroke-width": 1 }));
+    [0, 2, 4, 6, 8, 10, 11].forEach(function (k) {
+      var x = X(k);
+      var tx = mk("text", { x: x, y: y0 + 18, "text-anchor": "middle", "font-size": 11, fill: "var(--muted)", "font-variant-numeric": "tabular-nums" });
+      tx.textContent = k; axes.appendChild(tx);
+      axes.appendChild(mk("line", { x1: x, y1: y0, x2: x, y2: y0 + 5, stroke: "var(--baseline)", "stroke-width": 1 }));
+    });
+    var xl = mk("text", { x: (x0 + x1) / 2, y: y0 + 38, "text-anchor": "middle", "font-size": 12, fill: "var(--ink-2)" });
+    xl.textContent = "已声明类型的调用点 k / 11"; axes.appendChild(xl);
+    var yl = mk("text", { x: x0 - 48, y: (y0 + y1) / 2, "text-anchor": "middle", "font-size": 12, fill: "var(--ink-2)", transform: "rotate(-90 " + (x0 - 48) + " " + (y0 + y1) / 2 + ")" });
+    yl.textContent = "所需测试覆盖率"; axes.appendChild(yl);
+
+    var seriesG = document.getElementById("figB-series");
+    var certainty = [], conf = [];
+    for (var k = 0; k <= N; k++) certainty.push({ k: k, f: (1 - k / N) * 100 });
+    for (var k2 = 1; k2 <= N; k2++) conf.push({ k: k2, f: (1 - Math.pow(0.2, 1 / k2)) * 100 });
+    function drawSeries(pts, color, dash, label) {
+      var poly = pts.map(function (p) { return X(p.k) + "," + Y(p.f); }).join(" ");
+      seriesG.appendChild(mk("polyline", { points: poly, fill: "none", stroke: color, "stroke-width": 2, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+      pts.forEach(function (p) {
+        var c = mk("circle", { cx: X(p.k), cy: Y(p.f), r: 4, fill: color, stroke: "var(--surface)", "stroke-width": 2 });
+        seriesG.appendChild(c);
+        wire(c, p.f.toFixed(1) + "%", "k=" + p.k + "，" + label);
+      });
+    }
+    drawSeries(certainty, "var(--series-1)", null, "确定性所需覆盖");
+    drawSeries(conf, "var(--series-2)", null, "80% 把握所需覆盖");
+    /* Axis ticks already read 100% at k=0 and 0% at k=11, so no direct
+       endpoint numbers here - the rings tie the endpoints to the notes. */
+
+    // legend (2 series -> required), top-right where both curves have descended away
+    var lg = document.getElementById("figB-annot");
+    function legendItem(x, color, text) {
+      lg.appendChild(mk("line", { x1: x, y1: 20, x2: x + 18, y2: 20, stroke: color, "stroke-width": 2, "stroke-linecap": "round" }));
+      var t = mk("text", { x: x + 24, y: 24, "font-size": 12, fill: "var(--ink-2)" });
+      t.textContent = text; lg.appendChild(t);
+    }
+    legendItem(392, "var(--series-1)", "确定性保证 ≥1 个被抓");
+    legendItem(576, "var(--series-2)", "80% 把握");
+    // ring markers at the two decisive endpoints; numbered callouts live in the notes
+    lg.appendChild(mk("circle", { cx: X(0), cy: Y(100), r: 8, fill: "none", stroke: "var(--critical)", "stroke-width": 2 }));
+    lg.appendChild(mk("circle", { cx: X(N), cy: Y(0), r: 8, fill: "none", stroke: "var(--series-1)", "stroke-width": 2 }));
+
+    // data table
+    var tb = document.getElementById("figB-table");
+    var confByK = {};
+    conf.forEach(function (p) { confByK[p.k] = p.f; });
+    for (var kk = 0; kk <= N; kk++) {
+      var tr = document.createElement("tr");
+      var c1 = document.createElement("td"); c1.className = "num"; c1.textContent = kk;
+      var c2 = document.createElement("td"); c2.className = "num"; c2.textContent = ((1 - kk / N) * 100).toFixed(1) + "%";
+      var c3 = document.createElement("td"); c3.className = "num"; c3.textContent = confByK[kk] !== undefined ? confByK[kk].toFixed(1) + "%" : "—";
+      tr.appendChild(c1); tr.appendChild(c2); tr.appendChild(c3); tb.appendChild(tr);
+    }
+  })();
+
+  // ---------- Tradeoff panels C & D ----------
+  function barPanel(svgId, title, rows, maxV, fmt, noteKey) {
+    var g = document.getElementById(svgId);
+    var x0 = 40, base = 190, top = 50, fullH = base - top;
+    var slots = 3, bw = 44;
+    var centers = [70, 170, 270];
+    // gridlines + y labels
+    var ticks = [0, Math.round(maxV / 2), maxV];
+    ticks.forEach(function (t) {
+      var y = base - (t / maxV) * fullH;
+      g.appendChild(mk("line", { x1: x0, y1: y, x2: 320, y2: y, stroke: "var(--grid)", "stroke-width": 1 }));
+      var tx = mk("text", { x: x0 - 6, y: y + 4, "text-anchor": "end", "font-size": 10.5, fill: "var(--muted)", "font-variant-numeric": "tabular-nums" });
+      tx.textContent = t; g.appendChild(tx);
+    });
+    g.appendChild(mk("line", { x1: x0, y1: base, x2: 320, y2: base, stroke: "var(--baseline)", "stroke-width": 1 }));
+    rows.forEach(function (r, i) {
+      var c = centers[i];
+      var hh = r.value === 0 ? 0 : (r.value / maxV) * fullH;
+      var y = base - hh;
+      if (r.value === 0) {
+        g.appendChild(mk("circle", { cx: c, cy: base - 6, r: 5, fill: "none", stroke: "var(--critical)", "stroke-width": 2 }));
+        var zl = mk("text", { x: c, y: base - 18, "text-anchor": "middle", "font-size": 12, "font-weight": 600, fill: "var(--critical)" });
+        zl.textContent = "0"; g.appendChild(zl);
+      } else {
+        var rect = mk("rect", { x: c - bw / 2, y: y, width: bw, height: hh, rx: 4, ry: 4, fill: "var(--series-1)" });
+        var cap = mk("rect", { x: c - bw / 2, y: base - 4, width: bw, height: 4, fill: "var(--series-1)" });
+        g.appendChild(rect); g.appendChild(cap);
+        var vl = mk("text", { x: c, y: y - 8, "text-anchor": "middle", "font-size": 12, "font-weight": 600, fill: "var(--ink)", "font-variant-numeric": "tabular-nums" });
+        vl.textContent = fmt(r.value); g.appendChild(vl);
+        wire(rect, fmt(r.value), r.label);
+      }
+      var nm = mk("text", { x: c, y: base + 18, "text-anchor": "middle", "font-size": 12, fill: "var(--ink-2)" });
+      nm.textContent = r.label; g.appendChild(nm);
+      if (r.note) {
+        var nt = mk("text", { x: c, y: base + 34, "text-anchor": "middle", "font-size": 10.5, fill: "var(--muted)" });
+        nt.textContent = r.note; g.appendChild(nt);
+      }
+    });
+  }
+  barPanel("figC-bars", "cost",
+    [{ label: "默认值字段", value: 7, note: "最省但会再犯" },
+     { label: "裸枚举必填", value: 30, note: "字面量仍可伪造" },
+     { label: "结构体必填", value: 36, note: "漏标/字面量均拒" }],
+    36, function (v) { return v + " 行"; });
+  barPanel("figD-bars", "risk",
+    [{ label: "默认值字段", value: 3, note: "随物体数增长" },
+     { label: "裸枚举必填", value: 22, note: "11 点 × 2 字面量" },
+     { label: "结构体必填", value: 0, note: "零静默形态" }],
+    22, function (v) { return String(v); });
+})();
+</script>
+</body>
+</html>
