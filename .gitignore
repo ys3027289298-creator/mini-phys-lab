@@ -1,0 +1,6 @@
+# compiled module binaries (each module's Makefile builds one)
+collide/collide
+solve/solve
+integrate/integrate
+deform/deform
+*.o
