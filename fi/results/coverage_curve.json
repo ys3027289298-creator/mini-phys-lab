@@ -1,0 +1,209 @@
+[
+ {
+  "k": 1,
+  "point": "collide/T1",
+  "gain": 52,
+  "covered": 52,
+  "pct": 41.935483870967744,
+  "cum_ms": 0.7832560077076778,
+  "marg_units_per_ms": 66.38953227079126
+ },
+ {
+  "k": 2,
+  "point": "solve/T2",
+  "gain": 26,
+  "covered": 78,
+  "pct": 62.903225806451616,
+  "cum_ms": 1.4971470081945881,
+  "marg_units_per_ms": 36.42012573665541
+ },
+ {
+  "k": 3,
+  "point": "integrate/T3",
+  "gain": 17,
+  "covered": 95,
+  "pct": 76.61290322580645,
+  "cum_ms": 2.1886020113015547,
+  "marg_units_per_ms": 24.58583700112462
+ },
+ {
+  "k": 4,
+  "point": "collide/P_insideYl",
+  "gain": 4,
+  "covered": 99,
+  "pct": 79.83870967741936,
+  "cum_ms": 2.8901490004500374,
+  "marg_units_per_ms": 5.7016850786503745
+ },
+ {
+  "k": 5,
+  "point": "solve/Q_sep",
+  "gain": 4,
+  "covered": 103,
+  "pct": 83.06451612903226,
+  "cum_ms": 3.5567900049500167,
+  "marg_units_per_ms": 6.00023096839091
+ },
+ {
+  "k": 6,
+  "point": "collide/P_insideZl",
+  "gain": 3,
+  "covered": 106,
+  "pct": 85.48387096774194,
+  "cum_ms": 4.196092006168328,
+  "marg_units_per_ms": 4.692617877439661
+ },
+ {
+  "k": 7,
+  "point": "collide/P_missLow",
+  "gain": 2,
+  "covered": 108,
+  "pct": 87.09677419354838,
+  "cum_ms": 4.884538007900119,
+  "marg_units_per_ms": 2.905093493126529
+ },
+ {
+  "k": 8,
+  "point": "collide/N1",
+  "gain": 1,
+  "covered": 109,
+  "pct": 87.90322580645162,
+  "cum_ms": 5.666689015924931,
+  "marg_units_per_ms": 1.2785254889913502
+ },
+ {
+  "k": 9,
+  "point": "collide/P_insideXl",
+  "gain": 1,
+  "covered": 110,
+  "pct": 88.70967741935483,
+  "cum_ms": 6.326221002382226,
+  "marg_units_per_ms": 1.5162266888245144
+ },
+ {
+  "k": 10,
+  "point": "collide/P_insideYh",
+  "gain": 1,
+  "covered": 111,
+  "pct": 89.51612903225806,
+  "cum_ms": 6.962461993680336,
+  "marg_units_per_ms": 1.5717314880321067
+ },
+ {
+  "k": 11,
+  "point": "collide/P_insideZh",
+  "gain": 1,
+  "covered": 112,
+  "pct": 90.3225806451613,
+  "cum_ms": 7.642448996193707,
+  "marg_units_per_ms": 1.4706163445827567
+ },
+ {
+  "k": 12,
+  "point": "collide/P_invAll",
+  "gain": 1,
+  "covered": 113,
+  "pct": 91.12903225806451,
+  "cum_ms": 8.272956998553127,
+  "marg_units_per_ms": 1.5860226932218247
+ },
+ {
+  "k": 13,
+  "point": "collide/P_invY",
+  "gain": 1,
+  "covered": 114,
+  "pct": 91.93548387096774,
+  "cum_ms": 8.89511599962134,
+  "marg_units_per_ms": 1.6073061681709275
+ },
+ {
+  "k": 14,
+  "point": "collide/P_invZ",
+  "gain": 1,
+  "covered": 115,
+  "pct": 92.74193548387096,
+  "cum_ms": 9.538454003632069,
+  "marg_units_per_ms": 1.5543928599985555
+ },
+ {
+  "k": 15,
+  "point": "solve/S2",
+  "gain": 1,
+  "covered": 116,
+  "pct": 93.54838709677419,
+  "cum_ms": 10.177548014326021,
+  "marg_units_per_ms": 1.5647150235599332
+ },
+ {
+  "k": 16,
+  "point": "solve/Q_badrestLo",
+  "gain": 1,
+  "covered": 117,
+  "pct": 94.35483870967742,
+  "cum_ms": 10.865613017813303,
+  "marg_units_per_ms": 1.4533510568503787
+ },
+ {
+  "k": 17,
+  "point": "solve/Q_badfricLo",
+  "gain": 1,
+  "covered": 118,
+  "pct": 95.16129032258064,
+  "cum_ms": 11.529312017955817,
+  "marg_units_per_ms": 1.506707106361878
+ },
+ {
+  "k": 18,
+  "point": "solve/Q_badfricHi",
+  "gain": 1,
+  "covered": 119,
+  "pct": 95.96774193548387,
+  "cum_ms": 12.259862007340416,
+  "marg_units_per_ms": 1.3688317220323012
+ },
+ {
+  "k": 19,
+  "point": "solve/Q_sepNull",
+  "gain": 1,
+  "covered": 120,
+  "pct": 96.7741935483871,
+  "cum_ms": 12.940162006998435,
+  "marg_units_per_ms": 1.4699397332098962
+ },
+ {
+  "k": 20,
+  "point": "solve/Q_hitNull",
+  "gain": 1,
+  "covered": 121,
+  "pct": 97.58064516129032,
+  "cum_ms": 13.60594700963702,
+  "marg_units_per_ms": 1.5019863710310084
+ },
+ {
+  "k": 21,
+  "point": "integrate/S3",
+  "gain": 1,
+  "covered": 122,
+  "pct": 98.38709677419355,
+  "cum_ms": 14.415583005757071,
+  "marg_units_per_ms": 1.2351229500568337
+ },
+ {
+  "k": 22,
+  "point": "integrate/R_pen",
+  "gain": 1,
+  "covered": 123,
+  "pct": 99.19354838709677,
+  "cum_ms": 15.080523007782176,
+  "marg_units_per_ms": 1.5038950836984608
+ },
+ {
+  "k": 23,
+  "point": "integrate/R_baddt",
+  "gain": 1,
+  "covered": 124,
+  "pct": 100.0,
+  "cum_ms": 15.731528008473106,
+  "marg_units_per_ms": 1.536086510762087
+ }
+]

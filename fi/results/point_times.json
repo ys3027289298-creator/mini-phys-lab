@@ -1,0 +1,314 @@
+[
+ {
+  "module": "collide",
+  "case": "N1",
+  "process_ms": 0.7821510080248117,
+  "call_ns": 4.099425132153556
+ },
+ {
+  "module": "collide",
+  "case": "S1",
+  "process_ms": 0.7044630037853494,
+  "call_ns": 5.635225170408376
+ },
+ {
+  "module": "collide",
+  "case": "T1",
+  "process_ms": 0.7832560077076778,
+  "call_ns": 75.57302487839479
+ },
+ {
+  "module": "collide",
+  "case": "P_face",
+  "process_ms": 0.7841539918445051,
+  "call_ns": 5.944499935139902
+ },
+ {
+  "module": "collide",
+  "case": "P_graz",
+  "process_ms": 0.8462999976472929,
+  "call_ns": 6.416225005523302
+ },
+ {
+  "module": "collide",
+  "case": "P_corner",
+  "process_ms": 0.7384830096270889,
+  "call_ns": 8.50927535793744
+ },
+ {
+  "module": "collide",
+  "case": "P_low",
+  "process_ms": 0.7244320004247129,
+  "call_ns": 7.472600191249513
+ },
+ {
+  "module": "collide",
+  "case": "P_insideXl",
+  "process_ms": 0.6595319864572957,
+  "call_ns": 11.744025323423557
+ },
+ {
+  "module": "collide",
+  "case": "P_insideXh",
+  "process_ms": 0.7432019920088351,
+  "call_ns": 13.78897504764609
+ },
+ {
+  "module": "collide",
+  "case": "P_insideYl",
+  "process_ms": 0.7015469891484827,
+  "call_ns": 14.232625107979402
+ },
+ {
+  "module": "collide",
+  "case": "P_insideYh",
+  "process_ms": 0.6362409912981093,
+  "call_ns": 15.581224579364061
+ },
+ {
+  "module": "collide",
+  "case": "P_insideZl",
+  "process_ms": 0.6393020012183115,
+  "call_ns": 15.992724729585461
+ },
+ {
+  "module": "collide",
+  "case": "P_insideZh",
+  "process_ms": 0.6799870025133714,
+  "call_ns": 15.973599874996582
+ },
+ {
+  "module": "collide",
+  "case": "P_miss",
+  "process_ms": 0.6736340001225471,
+  "call_ns": 14.794474918744527
+ },
+ {
+  "module": "collide",
+  "case": "P_missLow",
+  "process_ms": 0.6884460017317906,
+  "call_ns": 15.70057502249256
+ },
+ {
+  "module": "collide",
+  "case": "P_inf",
+  "process_ms": 0.6529030069941655,
+  "call_ns": 20.272999609005637
+ },
+ {
+  "module": "collide",
+  "case": "P_nanr",
+  "process_ms": 0.62517799960915,
+  "call_ns": 17.136700262199156
+ },
+ {
+  "module": "collide",
+  "case": "P_invAll",
+  "process_ms": 0.6305080023594201,
+  "call_ns": 18.5015749593731
+ },
+ {
+  "module": "collide",
+  "case": "P_invY",
+  "process_ms": 0.6221590010682121,
+  "call_ns": 24.49329986120574
+ },
+ {
+  "module": "collide",
+  "case": "P_invZ",
+  "process_ms": 0.6433380040107295,
+  "call_ns": 22.30475001852028
+ },
+ {
+  "module": "solve",
+  "case": "N2",
+  "process_ms": 0.6929049995960668,
+  "call_ns": 1.702574809314683
+ },
+ {
+  "module": "solve",
+  "case": "S2",
+  "process_ms": 0.6390940106939524,
+  "call_ns": 1.4574750821338966
+ },
+ {
+  "module": "solve",
+  "case": "T2",
+  "process_ms": 0.7138910004869103,
+  "call_ns": 42.24802542012185
+ },
+ {
+  "module": "solve",
+  "case": "Q_bounce",
+  "process_ms": 0.6446780025726184,
+  "call_ns": 4.751075175590813
+ },
+ {
+  "module": "solve",
+  "case": "Q_sep",
+  "process_ms": 0.6666410044999793,
+  "call_ns": 4.378199810162187
+ },
+ {
+  "module": "solve",
+  "case": "Q_fricclip",
+  "process_ms": 0.6696649943478405,
+  "call_ns": 8.471875116811134
+ },
+ {
+  "module": "solve",
+  "case": "Q_fricpart",
+  "process_ms": 0.6548379897139966,
+  "call_ns": 7.437399835907854
+ },
+ {
+  "module": "solve",
+  "case": "Q_dull",
+  "process_ms": 0.6372460047714412,
+  "call_ns": 9.868800043477677
+ },
+ {
+  "module": "solve",
+  "case": "Q_badrestHi",
+  "process_ms": 0.6775829970138147,
+  "call_ns": 9.093825065065175
+ },
+ {
+  "module": "solve",
+  "case": "Q_badrestLo",
+  "process_ms": 0.6880650034872815,
+  "call_ns": 10.651874981704168
+ },
+ {
+  "module": "solve",
+  "case": "Q_badfricLo",
+  "process_ms": 0.6636990001425147,
+  "call_ns": 12.575574874063022
+ },
+ {
+  "module": "solve",
+  "case": "Q_badfricHi",
+  "process_ms": 0.730549989384599,
+  "call_ns": 13.16087509621866
+ },
+ {
+  "module": "solve",
+  "case": "Q_zeron",
+  "process_ms": 0.7407310040434822,
+  "call_ns": 15.725925186416132
+ },
+ {
+  "module": "solve",
+  "case": "Q_nanvel",
+  "process_ms": 0.7151119934860617,
+  "call_ns": 15.673024972784335
+ },
+ {
+  "module": "solve",
+  "case": "Q_vnzero",
+  "process_ms": 0.6824640004197136,
+  "call_ns": 18.484374959371053
+ },
+ {
+  "module": "solve",
+  "case": "Q_tinytan",
+  "process_ms": 0.6428119959309697,
+  "call_ns": 18.380674737272784
+ },
+ {
+  "module": "solve",
+  "case": "Q_sepNull",
+  "process_ms": 0.6802999996580184,
+  "call_ns": 18.12842529034242
+ },
+ {
+  "module": "solve",
+  "case": "Q_hitNull",
+  "process_ms": 0.6657850026385859,
+  "call_ns": 22.344599710777402
+ },
+ {
+  "module": "integrate",
+  "case": "N3",
+  "process_ms": 0.6337310041999444,
+  "call_ns": 3.1042000045999885
+ },
+ {
+  "module": "integrate",
+  "case": "S3",
+  "process_ms": 0.8096359961200505,
+  "call_ns": 6.519599992316216
+ },
+ {
+  "module": "integrate",
+  "case": "T3",
+  "process_ms": 0.6914550031069666,
+  "call_ns": 35.70600019884296
+ },
+ {
+  "module": "integrate",
+  "case": "R_fall",
+  "process_ms": 0.6921260064700618,
+  "call_ns": 5.247175067779608
+ },
+ {
+  "module": "integrate",
+  "case": "R_land",
+  "process_ms": 0.6995040021138266,
+  "call_ns": 7.501549771404825
+ },
+ {
+  "module": "integrate",
+  "case": "R_pen",
+  "process_ms": 0.6649400020251051,
+  "call_ns": 4.712349982582964
+ },
+ {
+  "module": "integrate",
+  "case": "R_side",
+  "process_ms": 0.6704059924231842,
+  "call_ns": 22.858374723000452
+ },
+ {
+  "module": "integrate",
+  "case": "R_baddt",
+  "process_ms": 0.6510050006909296,
+  "call_ns": 6.319300155155361
+ },
+ {
+  "module": "integrate",
+  "case": "R_badr",
+  "process_ms": 0.7655929948668927,
+  "call_ns": 10.812824984895997
+ },
+ {
+  "module": "integrate",
+  "case": "R_nandt",
+  "process_ms": 0.6938229926163331,
+  "call_ns": 10.633149940986186
+ },
+ {
+  "module": "integrate",
+  "case": "R_infdt",
+  "process_ms": 0.7410420075757429,
+  "call_ns": 9.172425416181795
+ },
+ {
+  "module": "integrate",
+  "case": "R_nangx",
+  "process_ms": 0.7228509930428118,
+  "call_ns": 10.033349826699123
+ },
+ {
+  "module": "integrate",
+  "case": "R_upward",
+  "process_ms": 0.6560129986610264,
+  "call_ns": 14.015050328453071
+ },
+ {
+  "module": "integrate",
+  "case": "R_longfall",
+  "process_ms": 0.6767930026398972,
+  "call_ns": 89.60127524915151
+ }
+]

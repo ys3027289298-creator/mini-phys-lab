@@ -1,0 +1,350 @@
+[
+  {
+    "case": "N1",
+    "module": "collide",
+    "class": "num",
+    "inject": "sphere radius = 0",
+    "own": {
+      "criterion": "C_num",
+      "pass": true,
+      "checks": [
+        {
+          "check": "in_codes",
+          "pass": true,
+          "detail": "ret=-1; documented=[-2, -1, 0, 1]"
+        },
+        {
+          "check": "finite_output",
+          "pass": true,
+          "detail": "depth=9 n=[0.699999988, -0.699999988, 0.100000001] p=[7, 8, 9]"
+        },
+        {
+          "check": "reject_deg",
+          "pass": true,
+          "detail": "radius=0 -> ret=-1 (want <0)"
+        }
+      ]
+    },
+    "siblings": {
+      "state": {
+        "criterion": "C_state",
+        "pass": false,
+        "checks": [
+          {
+            "check": "defined",
+            "pass": true,
+            "detail": "hit=1 depth=9 n=[0.699999988, -0.699999988, 0.100000001] p=[7, 8, 9]"
+          },
+          {
+            "check": "cleared",
+            "pass": false,
+            "detail": "r=-1 leaves prior contact in out-param: n=[0.699999988, -0.699999988, 0.100000001] p=[7, 8, 9]"
+          },
+          {
+            "check": "atomic",
+            "pass": true,
+            "detail": "n/a: pure out-param"
+          }
+        ]
+      }
+    },
+    "cross_class": [
+      {
+        "caught_by": "state",
+        "caught_at_check": "cleared",
+        "detail": "r=-1 leaves prior contact in out-param: n=[0.699999988, -0.699999988, 0.100000001] p=[7, 8, 9]",
+        "note": "own criterion passed; a latent defect is visible on the same call"
+      }
+    ],
+    "verdict": "PASS",
+    "caught_at": null,
+    "layers_that_missed": [],
+    "failed_checks": []
+  },
+  {
+    "case": "S1",
+    "module": "collide",
+    "class": "state",
+    "inject": "prior-frame Contact seed",
+    "own": {
+      "criterion": "C_state",
+      "pass": false,
+      "checks": [
+        {
+          "check": "defined",
+          "pass": true,
+          "detail": "hit=0 depth=0 n=[0.699999988, -0.699999988, 0.100000001] p=[7, 8, 9]"
+        },
+        {
+          "check": "cleared",
+          "pass": false,
+          "detail": "r=0 leaves prior contact in out-param: n=[0.699999988, -0.699999988, 0.100000001] p=[7, 8, 9]"
+        },
+        {
+          "check": "atomic",
+          "pass": true,
+          "detail": "n/a: pure out-param"
+        }
+      ]
+    },
+    "siblings": {},
+    "cross_class": [],
+    "verdict": "FAIL",
+    "caught_at": "cleared",
+    "layers_that_missed": [
+      "defined"
+    ],
+    "failed_checks": [
+      "cleared"
+    ],
+    "failure_detail": "r=0 leaves prior contact in out-param: n=[0.699999988, -0.699999988, 0.100000001] p=[7, 8, 9]"
+  },
+  {
+    "case": "T1",
+    "module": "collide",
+    "class": "time",
+    "inject": "4-way call permutation",
+    "own": {
+      "criterion": "C_time",
+      "pass": true,
+      "checks": [
+        {
+          "check": "ret_eq",
+          "pass": true,
+          "detail": "return codes equal across orders"
+        },
+        {
+          "check": "fin_eq",
+          "pass": true,
+          "detail": "outputs finite in both orders"
+        },
+        {
+          "check": "val_eq",
+          "pass": true,
+          "detail": "identical"
+        }
+      ]
+    },
+    "siblings": {},
+    "cross_class": [],
+    "verdict": "PASS",
+    "caught_at": null,
+    "layers_that_missed": [],
+    "failed_checks": []
+  },
+  {
+    "case": "N2",
+    "module": "solve",
+    "class": "num",
+    "inject": "contact normal = (0,0,0)",
+    "own": {
+      "criterion": "C_num",
+      "pass": false,
+      "checks": [
+        {
+          "check": "in_codes",
+          "pass": true,
+          "detail": "ret=1; documented=[-1, 0, 1]"
+        },
+        {
+          "check": "finite_output",
+          "pass": true,
+          "detail": "v=[0, -10, 0] loss=0"
+        },
+        {
+          "check": "reject_deg",
+          "pass": false,
+          "detail": "|normal|=0 -> ret=1 (want <0)"
+        }
+      ]
+    },
+    "siblings": {},
+    "cross_class": [],
+    "verdict": "FAIL",
+    "caught_at": "reject_deg",
+    "layers_that_missed": [
+      "in_codes",
+      "finite_output"
+    ],
+    "failed_checks": [
+      "reject_deg"
+    ],
+    "failure_detail": "|normal|=0 -> ret=1 (want <0)"
+  },
+  {
+    "case": "S2",
+    "module": "solve",
+    "class": "state",
+    "inject": "prior-frame loss seed",
+    "own": {
+      "criterion": "C_state",
+      "pass": false,
+      "checks": [
+        {
+          "check": "defined",
+          "pass": true,
+          "detail": "loss=0.123000003"
+        },
+        {
+          "check": "cleared",
+          "pass": false,
+          "detail": "r=-1 leaves prior loss=0.123000003 (before=0.123000003)"
+        },
+        {
+          "check": "atomic",
+          "pass": true,
+          "detail": "n/a: pure out-param"
+        }
+      ]
+    },
+    "siblings": {},
+    "cross_class": [],
+    "verdict": "FAIL",
+    "caught_at": "cleared",
+    "layers_that_missed": [
+      "defined"
+    ],
+    "failed_checks": [
+      "cleared"
+    ],
+    "failure_detail": "r=-1 leaves prior loss=0.123000003 (before=0.123000003)"
+  },
+  {
+    "case": "T2",
+    "module": "solve",
+    "class": "time",
+    "inject": "3-way call permutation",
+    "own": {
+      "criterion": "C_time",
+      "pass": true,
+      "checks": [
+        {
+          "check": "ret_eq",
+          "pass": true,
+          "detail": "return codes equal across orders"
+        },
+        {
+          "check": "fin_eq",
+          "pass": true,
+          "detail": "outputs finite in both orders"
+        },
+        {
+          "check": "val_eq",
+          "pass": true,
+          "detail": "identical"
+        }
+      ]
+    },
+    "siblings": {},
+    "cross_class": [],
+    "verdict": "PASS",
+    "caught_at": null,
+    "layers_that_missed": [],
+    "failed_checks": []
+  },
+  {
+    "case": "N3",
+    "module": "integrate",
+    "class": "num",
+    "inject": "dt = +Inf",
+    "own": {
+      "criterion": "C_num",
+      "pass": false,
+      "checks": [
+        {
+          "check": "in_codes",
+          "pass": true,
+          "detail": "ret=1; documented=[-1, 0, 1]"
+        },
+        {
+          "check": "finite_output",
+          "pass": false,
+          "detail": "body={'x': 'NaN', 'y': 'NaN', 'px': 0, 'py': 10, 'vx': 'NaN', 'vy': 0}"
+        },
+        {
+          "check": "reject_deg",
+          "pass": false,
+          "detail": "dt=+Inf -> ret=1 (want <0)"
+        }
+      ]
+    },
+    "siblings": {},
+    "cross_class": [],
+    "verdict": "FAIL",
+    "caught_at": "finite_output",
+    "layers_that_missed": [
+      "in_codes"
+    ],
+    "failed_checks": [
+      "finite_output",
+      "reject_deg"
+    ],
+    "failure_detail": "body={'x': 'NaN', 'y': 'NaN', 'px': 0, 'py': 10, 'vx': 'NaN', 'vy': 0}"
+  },
+  {
+    "case": "S3",
+    "module": "integrate",
+    "class": "state",
+    "inject": "prior-frame prev-position seed",
+    "own": {
+      "criterion": "C_state",
+      "pass": true,
+      "checks": [
+        {
+          "check": "defined",
+          "pass": true,
+          "detail": "body fields finite"
+        },
+        {
+          "check": "cleared",
+          "pass": true,
+          "detail": "n/a: authoritative state, not an out-param slot"
+        },
+        {
+          "check": "atomic",
+          "pass": true,
+          "detail": "rejected step unchanged"
+        }
+      ]
+    },
+    "siblings": {},
+    "cross_class": [],
+    "verdict": "PASS",
+    "caught_at": null,
+    "layers_that_missed": [],
+    "failed_checks": []
+  },
+  {
+    "case": "T3",
+    "module": "integrate",
+    "class": "time",
+    "inject": "3-way call permutation",
+    "own": {
+      "criterion": "C_time",
+      "pass": true,
+      "checks": [
+        {
+          "check": "ret_eq",
+          "pass": true,
+          "detail": "return codes equal across orders"
+        },
+        {
+          "check": "fin_eq",
+          "pass": true,
+          "detail": "outputs finite in both orders"
+        },
+        {
+          "check": "val_eq",
+          "pass": true,
+          "detail": "identical"
+        }
+      ]
+    },
+    "siblings": {},
+    "cross_class": [],
+    "verdict": "PASS",
+    "caught_at": null,
+    "layers_that_missed": [],
+    "failed_checks": []
+  }
+]

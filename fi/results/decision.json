@@ -1,0 +1,19 @@
+{
+ "universe_units": 124,
+ "n_candidate_points": 52,
+ "knee_k": 3,
+ "knee_pct": 76.61290322580645,
+ "k90": 11,
+ "k95": 17,
+ "k100": 23,
+ "mandated_9_units": 99,
+ "mandated_9_pct": 79.83870967741936,
+ "mandated_9_plus": 5,
+ "mandated_9_plus_k": 14,
+ "mandated_9_plus_pct": 90.3225806451613,
+ "time_model": "one isolated process per point; ~0.6ms fixed exec",
+ "median_process_ms": 0.6801435010856949,
+ "paths_universe": 51,
+ "paths_core9_pct": 96.07843137254902,
+ "paths_k_for_90": 3
+}
